@@ -18,8 +18,15 @@ export const ScheduleProvider = ({ children }) => {
     const loadedSchedules = loadSchedules();
     const loadedCurrentId = loadCurrentSchedule();
     
-    setSchedules(loadedSchedules);
-    setCurrentScheduleId(loadedCurrentId);
+    // If no schedules exist, create a default one
+    if (loadedSchedules.length === 0) {
+      const defaultSchedule = createSchedule('Morning Routine ☀️');
+      setSchedules([defaultSchedule]);
+      setCurrentScheduleId(defaultSchedule.id);
+    } else {
+      setSchedules(loadedSchedules);
+      setCurrentScheduleId(loadedCurrentId);
+    }
   }, []);
 
   // Auto-save to LocalStorage whenever schedules change
