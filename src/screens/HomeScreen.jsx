@@ -1,6 +1,16 @@
+import { useState } from 'react';
 import { colors, typography } from '../constants/theme';
+import IconSelector from '../components/IconSelector';
 
 export default function HomeScreen({ onNavigate }) {
+  const [isIconSelectorOpen, setIsIconSelectorOpen] = useState(false);
+  const [selectedIcon, setSelectedIcon] = useState(null);
+
+  const handleIconSelect = (icon) => {
+    setSelectedIcon(icon);
+    console.log('Selected icon:', icon);
+  };
+
   return (
     <div 
       className="min-h-screen flex flex-col items-center justify-center p-5"
@@ -14,12 +24,24 @@ export default function HomeScreen({ onNavigate }) {
       </h1>
       
       <div className="space-y-4 w-full max-w-md">
-        <p 
-          className="text-center"
-          style={{ color: colors.text.secondary }}
+        {selectedIcon && (
+          <div 
+            className="text-center p-4 bg-white rounded-xl"
+            style={{ color: colors.text.primary }}
+          >
+            <span className="text-5xl mb-2 block">{selectedIcon.emoji}</span>
+            <p className="font-semibold">{selectedIcon.name}</p>
+            <p className="text-sm opacity-70">Category: {selectedIcon.category}</p>
+          </div>
+        )}
+        
+        <button
+          onClick={() => setIsIconSelectorOpen(true)}
+          className="w-full py-4 rounded-xl font-semibold text-white transition-transform active:scale-95"
+          style={{ backgroundColor: colors.button }}
         >
-          Hello World - Home Screen
-        </p>
+          🎨 Test Icon Selector
+        </button>
         
         <button
           onClick={() => onNavigate('editor')}
@@ -29,6 +51,13 @@ export default function HomeScreen({ onNavigate }) {
           Go to Schedule Editor
         </button>
       </div>
+
+      <IconSelector
+        isOpen={isIconSelectorOpen}
+        onClose={() => setIsIconSelectorOpen(false)}
+        onSelect={handleIconSelect}
+        selectedIcon={selectedIcon}
+      />
     </div>
   );
 }
