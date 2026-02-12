@@ -57,8 +57,18 @@ const ActivityCard = ({ activity, index, onEdit, onDelete, onToggleDone }) => {
         </button>
 
         {/* Icon */}
-        <div className="text-[40px] leading-none mr-4 flex-shrink-0">
-          {activity.icon?.emoji || '📋'}
+        <div className="mr-4 flex-shrink-0 w-[40px] h-[40px] flex items-center justify-center">
+          {activity.icon?.customUrl ? (
+            <img 
+              src={activity.icon.customUrl} 
+              alt={activity.name}
+              className="w-full h-full object-cover rounded"
+            />
+          ) : (
+            <span className="text-[40px] leading-none">
+              {activity.icon?.emoji || '📋'}
+            </span>
+          )}
         </div>
 
         {/* Name and Time */}

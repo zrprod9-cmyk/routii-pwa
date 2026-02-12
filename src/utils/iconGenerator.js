@@ -15,22 +15,44 @@
  */
 
 /**
- * Generate a custom icon using AI
+ * Generate a custom icon using AI (WaveSpeed Nano Banana Pro)
  * @param {File} imageFile - User-uploaded image file
  * @param {string} activityName - Name of the activity for prompt context
- * @returns {Promise<string|null>} - Object URL of generated image, or null if failed
+ * @returns {Promise<string|null>} - Data URL of generated image, or null if failed
  */
 export const generateIcon = async (imageFile, activityName) => {
-  // TODO: Replace with actual API call in production
-  
-  console.log('Generating icon for:', activityName, 'with image:', imageFile.name);
-  
-  // Simulate API delay (2 seconds)
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  
-  // Mock: return placeholder image
-  // In production, this would be the generated image from WaveSpeed API
-  return 'https://via.placeholder.com/150/F4A261/4A3F35?text=AI+Icon';
+  try {
+    console.log('Generating icon for:', activityName, 'with image:', imageFile.name);
+    
+    // Convert image to base64
+    const imageBase64 = await fileToDataUrl(imageFile);
+    
+    // Craft prompt for visual schedule icon
+    const prompt = `Simple flat icon of ${activityName}, white background, clean minimalist style, suitable for visual schedule for kids, no text, high contrast`;
+    
+    // Call Vercel serverless function
+    const response = await fetch('/api/generate-icon', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt,
+        imageBase64, // Edit mode - use uploaded image as reference
+      }),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to generate icon');
+    }
+    
+    const data = await response.json();
+    return data.imageUrl; // data URL
+  } catch (error) {
+    console.error('Icon generation error:', error);
+    return null;
+  }
 };
 
 /**

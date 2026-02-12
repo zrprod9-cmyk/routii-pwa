@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import IconSelector from './IconSelector';
+import { generateIcon, validateImageFile } from '../utils/iconGenerator';
 
 const ActivityEditModal = ({ isOpen, onClose, onSave, activity }) => {
   const [name, setName] = useState('');
@@ -8,6 +9,8 @@ const ActivityEditModal = ({ isOpen, onClose, onSave, activity }) => {
   const [icon, setIcon] = useState(null);
   const [showIconSelector, setShowIconSelector] = useState(false);
   const [errors, setErrors] = useState({});
+  const [isGenerating, setIsGenerating] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Reset form when activity changes or modal opens
   useEffect(() => {
@@ -44,6 +47,42 @@ const ActivityEditModal = ({ isOpen, onClose, onSave, activity }) => {
 
   const handleCancel = () => {
     onClose();
+  };
+
+  const handleGenerateIcon = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      setErrors((prev) => ({ ...prev, aiIcon: validation.error }));
+      return;
+    }
+
+    setIsGenerating(true);
+    setErrors((prev) => ({ ...prev, aiIcon: undefined }));
+
+    try {
+      const generatedUrl = await generateIcon(file, name || 'activity');
+      
+      if (generatedUrl) {
+        // Set as custom icon
+        setIcon({
+          id: Date.now(),
+          name: 'AI Generated',
+          emoji: '🎨',
+          customUrl: generatedUrl,
+        });
+      } else {
+        setErrors((prev) => ({ ...prev, aiIcon: 'Failed to generate icon. Please try again.' }));
+      }
+    } catch (error) {
+      console.error('Generation error:', error);
+      setErrors((prev) => ({ ...prev, aiIcon: 'Failed to generate icon. Please try again.' }));
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -89,7 +128,12 @@ const ActivityEditModal = ({ isOpen, onClose, onSave, activity }) => {
                 onClick={() => setShowIconSelector(true)}
                 className="w-full p-4 rounded-xl border-2 border-[#4A3F35]/10 bg-white hover:border-[#F4A261] transition-colors flex items-center justify-center gap-3"
               >
-                {icon ? (
+                {icon?.customUrl ? (
+                  <>
+                    <img src={icon.customUrl} alt="Custom icon" className="w-10 h-10 rounded object-cover" />
+                    <span className="text-[#4A3F35]">{icon.name}</span>
+                  </>
+                ) : icon ? (
                   <>
                     <span className="text-4xl">{icon.emoji}</span>
                     <span className="text-[#4A3F35]">{icon.name}</span>
@@ -98,6 +142,46 @@ const ActivityEditModal = ({ isOpen, onClose, onSave, activity }) => {
                   <span className="text-[#4A3F35]/50">Choose an icon</span>
                 )}
               </button>
+              
+              {/* AI Generation */}
+              <div className="mt-3">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  onChange={handleGenerateIcon}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isGenerating || !name}
+                  className="w-full py-2.5 px-4 rounded-lg border-2 border-[#F4A261] text-[#F4A261] hover:bg-[#F4A261] hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm font-medium"
+                >
+                  {isGenerating ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Generate Custom Icon with AI
+                    </>
+                  )}
+                </button>
+                {!name && (
+                  <p className="text-xs text-[#4A3F35]/50 mt-1 text-center">Enter activity name first</p>
+                )}
+                {errors.aiIcon && (
+                  <p className="text-red-500 text-xs mt-1 text-center">{errors.aiIcon}</p>
+                )}
+              </div>
             </div>
 
             {/* Name Input */}
