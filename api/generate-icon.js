@@ -98,7 +98,7 @@ export default async function handler(req, res) {
       modelId = MODELS.edit;
       payload = {
         prompt,
-        image: imageBase64.replace(/^data:image\/\w+;base64,/, ''), // strip prefix
+        images: [imageBase64], // WaveSpeed API expects array with full data URL
       };
     } else {
       // Text-to-image mode
