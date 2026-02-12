@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { Download } from 'lucide-react';
 import { useSchedule } from '../hooks/useSchedule';
 import { createActivity } from '../models/schedule';
 import ActivityCard from '../components/ActivityCard';
 import TimelineConnector from '../components/TimelineConnector';
 import ActivityEditModal from '../components/ActivityEditModal';
+import ExportModal from '../components/ExportModal';
 
 export default function ScheduleEditorScreen({ onNavigate }) {
   const {
@@ -19,6 +21,7 @@ export default function ScheduleEditorScreen({ onNavigate }) {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState(null);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Configure drag sensors
   const sensors = useSensors(
@@ -122,16 +125,39 @@ export default function ScheduleEditorScreen({ onNavigate }) {
     >
       {/* Header */}
       <div className="pt-12 pb-6 px-5">
-        <h1
-          className="text-[28px] font-bold text-center"
+        <div className="flex items-center justify-between mb-2">
+          <div className="w-10"></div>
+          <h1
+            className="text-[28px] font-bold"
+            style={{ color: '#4A3F35' }}
+          >
+            {currentSchedule.name}
+          </h1>
+          <button
+            onClick={() => setIsExportModalOpen(true)}
+            className="w-10 h-10 flex items-center justify-center rounded-lg transition-all active:scale-95"
+            style={{
+              border: '2px solid #6B5B4F',
+              color: '#6B5B4F',
+            }}
+            aria-label="Export schedule"
+          >
+            <Download size={20} />
+          </button>
+        </div>
+      </div>
+
+      {/* Export wrapper */}
+      <div id="schedule-export" className="px-5 pb-6">
+        {/* Schedule Title (for export) */}
+        <h2
+          className="text-[24px] font-bold text-center mb-6"
           style={{ color: '#4A3F35' }}
         >
           {currentSchedule.name}
-        </h1>
-      </div>
+        </h2>
 
-      {/* Activities List */}
-      <div className="px-5">
+        {/* Activities List */}
         {activities.length === 0 ? (
           <div className="py-12 text-center">
             <span className="text-6xl mb-4 block">📋</span>
@@ -175,11 +201,14 @@ export default function ScheduleEditorScreen({ onNavigate }) {
             </SortableContext>
           </DndContext>
         )}
+      </div>
 
+      {/* Action Buttons */}
+      <div className="px-5 mt-6">
         {/* Add Activity Button */}
         <button
           onClick={handleAddActivity}
-          className="w-full h-[52px] rounded-xl font-semibold text-white text-[16px] mt-6 transition-transform active:scale-95 shadow-sm"
+          className="w-full h-[52px] rounded-xl font-semibold text-white text-[16px] transition-transform active:scale-95 shadow-sm"
           style={{ backgroundColor: '#F4A261' }}
         >
           + Add Activity
@@ -208,6 +237,12 @@ export default function ScheduleEditorScreen({ onNavigate }) {
         }}
         onSave={handleSaveActivity}
         activity={editingActivity}
+      />
+
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
       />
     </div>
   );
