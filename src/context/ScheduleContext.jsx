@@ -161,6 +161,24 @@ export const ScheduleProvider = ({ children }) => {
     );
   }, []);
 
+  // Load template
+  const loadTemplate = useCallback((template) => {
+    const schedule = createSchedule(template.name);
+    const activitiesWithColors = template.activities.map((activity) => ({
+      ...createActivity(activity.name, activity.icon, activity.time),
+      color: null, // Auto-assigned by ActivityCard
+    }));
+    schedule.activities = activitiesWithColors;
+    
+    const newSchedules = [...schedules, schedule];
+    setSchedules(newSchedules);
+    setCurrentScheduleId(schedule.id);
+    saveSchedules(newSchedules);
+    saveCurrentSchedule(schedule.id);
+    
+    return schedule;
+  }, [schedules]);
+
   const value = {
     schedules,
     currentSchedule,
@@ -174,6 +192,7 @@ export const ScheduleProvider = ({ children }) => {
     deleteActivity,
     reorderActivities,
     toggleActivityDone,
+    loadTemplate,
   };
 
   return (

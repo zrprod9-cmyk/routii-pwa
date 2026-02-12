@@ -1,14 +1,24 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { colors, typography } from '../constants/theme';
 import IconSelector from '../components/IconSelector';
+import TemplateSelector from '../components/TemplateSelector';
+import { ScheduleContext } from '../context/ScheduleContext';
 
 export default function HomeScreen({ onNavigate }) {
   const [isIconSelectorOpen, setIsIconSelectorOpen] = useState(false);
+  const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState(null);
+  
+  const { loadTemplate } = useContext(ScheduleContext);
 
   const handleIconSelect = (icon) => {
     setSelectedIcon(icon);
     console.log('Selected icon:', icon);
+  };
+
+  const handleTemplateSelect = (template) => {
+    loadTemplate(template);
+    onNavigate('editor');
   };
 
   return (
@@ -36,6 +46,14 @@ export default function HomeScreen({ onNavigate }) {
         )}
         
         <button
+          onClick={() => setIsTemplateSelectorOpen(true)}
+          className="w-full py-4 rounded-xl font-semibold text-white transition-transform active:scale-95"
+          style={{ backgroundColor: colors.button }}
+        >
+          📋 Load Template
+        </button>
+        
+        <button
           onClick={() => setIsIconSelectorOpen(true)}
           className="w-full py-4 rounded-xl font-semibold text-white transition-transform active:scale-95"
           style={{ backgroundColor: colors.button }}
@@ -57,6 +75,12 @@ export default function HomeScreen({ onNavigate }) {
         onClose={() => setIsIconSelectorOpen(false)}
         onSelect={handleIconSelect}
         selectedIcon={selectedIcon}
+      />
+
+      <TemplateSelector
+        isOpen={isTemplateSelectorOpen}
+        onClose={() => setIsTemplateSelectorOpen(false)}
+        onSelectTemplate={handleTemplateSelect}
       />
     </div>
   );
